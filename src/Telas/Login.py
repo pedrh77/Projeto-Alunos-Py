@@ -15,6 +15,12 @@ def abrir_tela_login():
         else:
             messagebox.showerror("Erro", "Usuário ou senha inválidos!")
 
+
+    def validar_cpf(event):
+        atual = entry_cpf.get().strip()
+        if len(atual) > 11:
+            entry_cpf.delete(11, tk.END) 
+            
     janela_login = tk.Tk()
     janela_login.title("Tela de Login")
     janela_login.geometry("400x400")
@@ -35,6 +41,9 @@ def abrir_tela_login():
 
     entry_cpf = tk.Entry(janela_login, width=30, font=("Arial", 14), show="*")
     entry_cpf.pack(pady=(0, 25))
+
+    entry_cpf.bind('<KeyRelease>', validar_cpf)
+
 
     botao_login = tk.Button(
         janela_login,

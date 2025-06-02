@@ -4,7 +4,7 @@ import Banco.Repository as banco
 import Controller
 
 def abrir_tela_disciplinas():
-    disciplina_selecionada = None  # Armazena a disciplina que está sendo editada
+    disciplina_selecionada = None  
 
     def refresh_lista():
         listbox.delete(0, tk.END)
@@ -48,9 +48,7 @@ def abrir_tela_disciplinas():
             return
         idx = selecionado[0]
         dados = banco.listar_disciplinas()[idx]
-        disciplina_selecionada = dados[0]  # ID da disciplina
-
-        # Preenche os campos com os dados atuais
+        disciplina_selecionada = dados[0]  
         entry_nome.delete(0, tk.END)
         entry_nome.insert(0, dados[1])
 
@@ -63,7 +61,6 @@ def abrir_tela_disciplinas():
         entry_professor.delete(0, tk.END)
         entry_professor.insert(0, dados[4])
 
-        # Habilita o botão de salvar alterações
         btn_salvar.config(state="normal")
 
     def voltar():
@@ -109,7 +106,7 @@ def abrir_tela_disciplinas():
             messagebox.showinfo("Sucesso", "Disciplina deletada")
             refresh_lista()
 
-    # Criando a janela
+   
     janela = tk.Tk()
     janela.title("Gerenciar Disciplinas")
     janela.geometry("600x500")

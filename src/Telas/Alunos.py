@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 import Banco.Repository as banco
 import Controller
 
@@ -13,22 +13,51 @@ def abrir_tela_alunos():
             listbox.insert(tk.END, f"{aluno[0]} - {aluno[1]} | CPF: {aluno[2]} | Tel: {aluno[3]}")
         limpar_campos()
 
+
+    def formatar_nome():
+        atual = entry_nome.get()
+        formatado = atual.title()
+        entry_nome.delete(0, tk.END)
+        entry_nome.insert(0, formatado)
+        
     def limpar_campos():
-        entry_matricula.delete(0, tk.END)
+        combo_ano.set('')
+        combo_semestre.set('')
         entry_nome.delete(0, tk.END)
         entry_cpf.delete(0, tk.END)
         entry_telefone.delete(0, tk.END)
         btn_salvar.config(state="disabled")
 
+    def gerar_matricula(ano, semestre):
+        return f"{ano}.{semestre}"
+
+    def validar_cpf(event):
+        atual = entry_cpf.get().strip()
+        if len(atual) > 11:
+            entry_cpf.delete(11, tk.END) 
+
+    def validar_nome(nome):
+        partes = nome.strip().split()
+        return len(partes) >= 2
+
     def inserir():
-        matricula = entry_matricula.get().strip()
+        ano = combo_ano.get()
+        semestre = combo_semestre.get()
         nome = entry_nome.get().strip()
         cpf = entry_cpf.get().strip()
         telefone = entry_telefone.get().strip()
 
-        if not matricula or not nome or not cpf:
-            messagebox.showwarning("Atenção", "Preencha Matrícula, Nome e CPF.")
+        if not ano or not semestre:
+            messagebox.showwarning("Atenção", "Selecione Ano e Semestre.")
             return
+
+        if not nome or not validar_nome(nome):
+            messagebox.showwarning("Atenção", "Informe Nome e Sobrenome.")
+            return
+
+
+        
+        matricula = gerar_matricula(ano, semestre)
 
         try:
             banco.inserir_aluno(matricula, nome, cpf, telefone)
@@ -45,11 +74,15 @@ def abrir_tela_alunos():
             return
 
         aluno = banco.listar_alunos()[selecionado[0]]
-        aluno_selecionado = aluno[0]  # Matrícula antiga
+        aluno_selecionado = aluno[0]  # matrícula
 
-        entry_matricula.delete(0, tk.END)
-        entry_matricula.insert(0, aluno[0])
-        entry_matricula.configure(state="disabled")
+        matricula_partes = aluno[0].split(".")
+        if len(matricula_partes) == 2:
+            combo_ano.set(matricula_partes[0])
+            combo_semestre.set(matricula_partes[1])
+        else:
+            combo_ano.set('')
+            combo_semestre.set('')
 
         entry_nome.delete(0, tk.END)
         entry_nome.insert(0, aluno[1])
@@ -71,19 +104,20 @@ def abrir_tela_alunos():
         nome = entry_nome.get().strip()
         telefone = entry_telefone.get().strip()
 
-        if not nome:
-            messagebox.showwarning("Atenção", "O campo Nome não pode estar vazio.")
+        if not nome or not validar_nome(nome):
+            messagebox.showwarning("Atenção", "Informe Nome e Sobrenome.")
             return
+
+        nome = validar_nome(nome)
 
         try:
             banco.atualizar_aluno(aluno_selecionado, nome, telefone)
             messagebox.showinfo("Sucesso", "Aluno atualizado com sucesso.")
-            entry_matricula.configure(state="normal")
             entry_cpf.configure(state="normal")
             refresh_lista()
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao atualizar: {e}")
-            
+
     def deletar():
         selecionado = listbox.curselection()
         if not selecionado:
@@ -104,7 +138,7 @@ def abrir_tela_alunos():
         janela.destroy()
         Controller.abrir_tela_principal()
 
-    # Construção da janela
+    # ==== JANELA PRINCIPAL ====
     janela = tk.Tk()
     janela.title("Gerenciamento de Alunos")
     janela.geometry("650x550")
@@ -113,21 +147,29 @@ def abrir_tela_alunos():
     frame_form = tk.Frame(janela)
     frame_form.pack(pady=10)
 
-    tk.Label(frame_form, text="Matrícula:", font=("Arial", 12)).grid(row=0, column=0, sticky="e")
-    entry_matricula = tk.Entry(frame_form, width=20, font=("Arial", 12))
-    entry_matricula.grid(row=0, column=1, padx=10, pady=5)
+    tk.Label(frame_form, text="Ano:", font=("Arial", 12)).grid(row=0, column=0, sticky="e")
+    combo_ano = ttk.Combobox(frame_form, values=[str(i) for i in range(2020, 2026)],
+                              width=10, font=("Arial", 12), state="readonly")
+    combo_ano.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+
+    tk.Label(frame_form, text="Semestre:", font=("Arial", 12)).grid(row=0, column=2, sticky="e")
+    combo_semestre = ttk.Combobox(frame_form, values=["1", "2"],
+                                   width=5, font=("Arial", 12), state="readonly")
+    combo_semestre.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
     tk.Label(frame_form, text="Nome:", font=("Arial", 12)).grid(row=1, column=0, sticky="e")
     entry_nome = tk.Entry(frame_form, width=40, font=("Arial", 12))
-    entry_nome.grid(row=1, column=1, padx=10, pady=5)
+    entry_nome.grid(row=1, column=1, columnspan=3, padx=10, pady=5, sticky="w")
+    entry_nome.bind("<KeyRelease>", lambda e: formatar_nome())
 
     tk.Label(frame_form, text="CPF:", font=("Arial", 12)).grid(row=2, column=0, sticky="e")
     entry_cpf = tk.Entry(frame_form, width=20, font=("Arial", 12))
-    entry_cpf.grid(row=2, column=1, sticky="w", padx=10, pady=5)
+    entry_cpf.grid(row=2, column=1, padx=10, pady=5, sticky="w")
+    entry_cpf.bind('<KeyRelease>', validar_cpf)
 
-    tk.Label(frame_form, text="Telefone:", font=("Arial", 12)).grid(row=3, column=0, sticky="e")
+    tk.Label(frame_form, text="Telefone:", font=("Arial", 12)).grid(row=2, column=2, sticky="e")
     entry_telefone = tk.Entry(frame_form, width=20, font=("Arial", 12))
-    entry_telefone.grid(row=3, column=1, sticky="w", padx=10, pady=5)
+    entry_telefone.grid(row=2, column=3, padx=10, pady=5, sticky="w")
 
     btn_inserir = tk.Button(janela, text="Inserir Aluno", font=("Arial", 14),
                              bg="#4CAF50", fg="white", command=inserir)

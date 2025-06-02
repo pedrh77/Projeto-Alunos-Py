@@ -57,7 +57,7 @@ def validar_aluno(matricula, cpf):
 
         conexao.close()
 
-        if resultado is not None:  # Se achou um registro
+        if resultado is not None:  
             return True
         else:
             return False
@@ -78,11 +78,10 @@ def inserir_disciplina(nome, ano, semestre, professor):
     conexao.commit()
 
 def listar_disciplinas():
-    conexao = sqlite3.connect('database2.bd')
-    cursor = conexao.cursor()
-    cursor.execute("SELECT * FROM Disciplinas")
-    conexao.close()  
-    return cursor.fetchall() 
+    with sqlite3.connect('database2.bd') as conexao:
+        cursor = conexao.cursor()
+        cursor.execute("SELECT * FROM Disciplinas")
+        return cursor.fetchall()
 
 
 def listar_disciplinas_dropbox():
@@ -149,3 +148,68 @@ def deletar_aluno(matricula):
     cursor.execute("DELETE FROM Alunos WHERE matricula = ?", (matricula,))
     conexao.commit()
     conexao.close()
+
+
+def inserir_prova(disciplina_id, aluno_matricula, sm1, sm2, av, avs, nf):
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute('''
+        INSERT INTO provas 
+        (disciplina_id, aluno_matricula, nota_sm1, nota_sm2, av, avs, nf) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (disciplina_id, aluno_matricula, sm1, sm2, av, avs, nf))
+    conexao.commit()
+    conexao.close()
+
+
+def existe_prova(disciplina_id, aluno_matricula):
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute( '''SELECT COUNT(*) FROM provas WHERE disciplina_id = ? AND aluno_matricula = ?''',(disciplina_id, aluno_matricula))
+    count = cursor.fetchone()[0]
+    return count > 0
+
+def listar_provas():
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute('SELECT * FROM provas')
+    resultado = cursor.fetchall()
+    conexao.close()
+    return resultado
+
+def atualizar_prova(id, disciplina_id, aluno_matricula, sm1, sm2, av, avs, nf):
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute('''
+        UPDATE provas SET 
+            disciplina_id = ?, aluno_matricula = ?, nota_sm1 = ?, nota_sm2 = ?, av = ?, avs = ?, nf = ?
+        WHERE id = ?
+    ''', (disciplina_id, aluno_matricula, sm1, sm2, av, avs, nf, id))
+    conexao.commit()
+    conexao.close()
+
+def deletar_prova(id):
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute('DELETE FROM provas WHERE id = ?', (id,))
+    conexao.commit()
+    conexao.close()
+
+
+def buscar_disciplina_por_id(id):
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute('SELECT * FROM disciplinas WHERE id = ?', (id,))
+    resultado = cursor.fetchone()
+    conexao.close()
+    return resultado
+
+
+
+def buscar_aluno_por_matricula(matricula):
+    conexao = sqlite3.connect('database2.bd')
+    cursor = conexao.cursor()
+    cursor.execute('SELECT * FROM alunos WHERE matricula = ?', (matricula,))
+    resultado = cursor.fetchone()
+    conexao.close()
+    return resultado
