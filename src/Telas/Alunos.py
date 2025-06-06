@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
+from datetime import datetime
 import Banco.Repository as banco
 import Controller
 
@@ -29,7 +30,9 @@ def abrir_tela_alunos():
         btn_salvar.config(state="disabled")
 
     def gerar_matricula(ano, semestre):
-        return f"{ano}.{semestre}"
+        agora = datetime.now()
+        hora = agora.strftime("%H%M%S") 
+        return f"{ano}.{semestre}.{hora}"
 
     def validar_cpf(event):
         atual = entry_cpf.get().strip()
