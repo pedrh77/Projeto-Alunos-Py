@@ -181,7 +181,14 @@ def abrir_tela_provas():
             sm2 = float(entry_sm2.get() or 0)
             av = float(entry_av.get() or 0)
             avs = float(entry_avs.get() or 0)
-            nf = sm1 + sm2 + av + avs
+
+            sm1 = min(max(sm1, 0), 1)
+            sm2 = min(max(sm2, 0), 1)
+            av = min(max(av, 0), 10)
+            avs = min(max(avs, 0), 10)
+
+            nota_av_final = max(av, avs)
+            nf = sm1 + sm2 + nota_av_final
 
             banco.atualizar_prova(prova_selecionada, disciplina_id, aluno_id, sm1, sm2, av, avs, nf)
             messagebox.showinfo("Sucesso", "Prova atualizada com sucesso.")
